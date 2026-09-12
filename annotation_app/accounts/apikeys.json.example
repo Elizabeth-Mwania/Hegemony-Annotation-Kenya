@@ -1,0 +1,10 @@
+{
+  "FLASK_SECRET_KEY": "generate-a-random-secret-key",
+  "ANNOTATOR_PASSWORD_HASH": "bcrypt-hash-of-your-kenya-access-code",
+  "ADMIN_USERNAME": "admin",
+  "ADMIN_PASSWORD_HASH": "bcrypt-hash-of-admin-password",
+  "GPT_API_KEY": "sk-proj-...",
+  "OPENAI_API_KEY": "sk-or-...",
+  "GEMINI_API_KEY": "AIza...",
+  "DEEPSEEK_API_KEY": "sk-..."
+}

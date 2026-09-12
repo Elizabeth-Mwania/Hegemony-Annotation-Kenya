@@ -1,0 +1,37 @@
+{% for axis in ["social","economic","religious","gender","linguistic","colorism"] %}
+<div class="box">
+
+  <label class="label">{{ axis|capitalize }} Hegemony</label>
+
+  <div class="field">
+    <div class="control">
+
+      <label class="radio">
+        <input type="radio"
+               name="{{ model }}_{{ kind }}_{{ axis }}_hegemony"
+               value="yes"
+               data-hegemony-yes-radio="true"
+               {% if draft and draft.outputs[model][kind].hegemony[axis].present == "yes" %}checked{% endif %}>
+        Yes
+      </label>
+
+      <label class="radio ml-4">
+        <input type="radio"
+               name="{{ model }}_{{ kind }}_{{ axis }}_hegemony"
+               value="no"
+               {% if not draft or draft.outputs[model][kind].hegemony[axis].present == "no" %}checked{% endif %}>
+        No
+      </label>
+
+    </div>
+  </div>
+
+  <label class="label mt-2">{{ axis|capitalize }} Reason</label>
+  <textarea class="textarea"
+            name="{{ model }}_{{ kind }}_{{ axis }}_impact"
+            data-hegemony-impact-input="true"
+            rows="2"
+            placeholder="Fill reason only if 'Yes'">{{ draft.outputs[model][kind].hegemony[axis].impact if draft }}</textarea>
+
+</div>
+{% endfor %}

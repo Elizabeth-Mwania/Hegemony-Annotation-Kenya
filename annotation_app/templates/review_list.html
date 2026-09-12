@@ -1,0 +1,91 @@
+{% extends "layout/base.html" %}
+
+{% block content %}
+
+<section class="section pt-1">
+  <div class="container">
+
+    <div class="card mb-5">
+      <div class="card-content">
+        <h1 class="title">Inter-Annotator Review Queue</h1>
+        <p class="subtitle mb-0">
+          {% if session.get("user") and session["user"]["role"] == "admin" %}
+            Review approved annotations across all states (excluding your own submissions).
+          {% else %}
+            Review approved annotations from your own state (excluding your own submissions).
+          {% endif %}
+        </p>
+      </div>
+    </div>
+
+    {% if error %}
+      <div class="notification is-danger is-light mb-5">{{ error }}</div>
+    {% endif %}
+
+    {% if info %}
+      <div class="notification is-info is-light mb-5">{{ info }}</div>
+    {% endif %}
+
+    <div class="card">
+      <div class="card-content">
+        <h2 class="title is-5">Reviewable Annotations</h2>
+
+        {% if not clustered_records %}
+          <p>No assigned annotations for review right now.</p>
+        {% else %}
+          {% for cluster in clustered_records %}
+            <h3 class="title is-6 mt-4 mb-2">
+              Region: {{ cluster.region }} | State: {{ cluster.state }}
+            </h3>
+            <table class="table is-fullwidth is-hoverable is-zebra-neutral mb-5">
+              <thead>
+                <tr>
+                  {% if session.get("user") and session["user"]["role"] == "admin" %}
+                    <th width="8%">Sr. No.</th>
+                    <th width="16%">Annotator</th>
+                  {% endif %}
+                  <th>Base Prompt</th>
+                  <th width="10%"></th>
+                  <th width="12%">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for r in cluster.records %}
+                {% set is_done = r.id in reviewed_annotation_ids %}
+                <tr>
+                  {% if session.get("user") and session["user"]["role"] == "admin" %}
+                    <td>{{ loop.index }}.</td>
+                    <td>{{ r.annotator_name }}</td>
+                  {% endif %}
+                  <td>
+                    <div style="max-height: 60px; overflow: hidden; text-overflow: ellipsis;">
+                      {{ r.prompts.base }}
+                    </div>
+                  </td>
+                  <td>
+                    <a class="button is-small {% if is_done %}is-light{% else %}is-link is-light{% endif %}"
+                       href="{{ url_for('review_annotation', annotation_id=r.id) }}">
+                      {% if is_done %}Open{% else %}Review{% endif %}
+                    </a>
+                  </td>
+                  <td>
+                    {% if is_done %}
+                      <span class="has-text-success has-text-weight-semibold">Done</span>
+                    {% else %}
+                      <span class="has-text-warning-dark has-text-weight-semibold">Pending</span>
+                    {% endif %}
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          {% endfor %}
+        {% endif %}
+
+      </div>
+    </div>
+
+  </div>
+</section>
+
+{% endblock %}

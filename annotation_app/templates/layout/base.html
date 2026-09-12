@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>{% block title %}Cultural Hegemony Annotation{% endblock %}</title>
+
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+
+  {% block styles %}
+    <style>
+    :root {
+        --bg-main: #f5f6ff;
+        --bg-soft: #fbfbfe;
+        --bg-card: #fdfdff;
+        --ink-main: #3b3f5c;
+        --ink-soft: #6b6f8a;
+        --line: #e6e8f0;
+        --line-strong: #d7ddef;
+        --accent: #a5b4fc;
+        --accent-strong: #7c8ef6;
+        --accent-soft: #e8edff;
+        --warn: #facc15;
+    }
+
+    html, body {
+        min-height: 100%;
+    }
+
+    body.login-page {
+        background: linear-gradient(135deg, #dbe4ff, #f8f9ff);
+    }
+
+    .wrapped-pre {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    max-width: 100%;
+    background-color: #f8f9ff;
+    padding: 1rem;
+    border-radius: 8px;
+    border: 1px solid #e6e8f0;
+    }
+
+    .markdown-output {
+        background: #f8f9ff;
+        border: 1px solid #e6e8f0;
+        border-radius: 10px;
+        padding: 0.9rem 1rem;
+        min-height: 8rem;
+        color: #1f4ed8;
+        overflow-wrap: anywhere;
+        white-space: normal;
+    }
+
+    .markdown-output.is-compact {
+        min-height: 0;
+    }
+
+    .textarea.markdown-output {
+        min-height: 27rem;
+        height: auto;
+        overflow-y: auto;
+    }
+
+    .markdown-output.is-loading {
+        color: var(--ink-soft);
+        font-style: italic;
+    }
+
+    .markdown-output > :first-child {
+        margin-top: 0;
+    }
+
+    .markdown-output > :last-child {
+        margin-bottom: 0;
+    }
+
+    .markdown-output pre {
+        background: #ffffff;
+        border: 1px solid #d7ddef;
+        border-radius: 8px;
+        padding: 0.75rem 0.9rem;
+        overflow-x: auto;
+        color: #1f4ed8;
+    }
+
+    .markdown-output code {
+        background: #eef2ff;
+        padding: 0.08rem 0.3rem;
+        border-radius: 6px;
+        color: #3b5bdb;
+    }
+
+    .markdown-output pre code {
+        background: transparent;
+        padding: 0;
+        color: inherit;
+    }
+
+    .markdown-output blockquote {
+        margin: 0.85rem 0;
+        padding-left: 0.9rem;
+        border-left: 3px solid var(--accent);
+        color: var(--ink-soft);
+    }
+
+    .markdown-output ul,
+    .markdown-output ol {
+        margin-left: 1.2rem;
+    }
+    body {
+        background:
+            radial-gradient(80rem 40rem at 85% -10%, rgba(165, 180, 252, 0.20), transparent 60%),
+            radial-gradient(70rem 35rem at 0% 15%, rgba(203, 213, 255, 0.28), transparent 55%),
+            var(--bg-main);
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        line-height: 1.6;
+        color: var(--ink-main);
+    }
+
+    /* Main container */
+    .container {
+        max-width: 1100px;
+        padding: 0 1rem 2.5rem;
+    }
+
+    /* Titles */
+    .title {
+        color: var(--ink-main);
+        letter-spacing: -0.01em;
+    }
+
+    .subtitle {
+        color: var(--ink-soft);
+    }
+
+    /* Section boxes (hegemony axes) */
+    .box {
+        background:
+            linear-gradient(160deg, rgba(255, 255, 255, 0.95), rgba(248, 250, 255, 0.95));
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        box-shadow:
+            0 12px 32px rgba(46, 59, 96, 0.08),
+            0 3px 10px rgba(46, 59, 96, 0.05);
+    }
+
+    /* Inputs & textareas */
+    .input,
+    .textarea,
+    select {
+        background-color: var(--bg-soft);
+        border-color: var(--line-strong);
+        border-radius: 10px;
+        transition: border-color 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
+    }
+
+    .input:focus,
+    .textarea:focus,
+    select:focus {
+        background-color: #fff;
+        border-color: var(--accent);
+        box-shadow: 0 0 0 0.125em rgba(165, 180, 252, 0.25);
+    }
+
+    /* Labels */
+    .label {
+        color: #4a4e69;
+        font-weight: 600;
+        letter-spacing: 0.01em;
+    }
+
+    /* Buttons */
+    .button {
+        border-radius: 10px;
+        transition: transform 0.14s ease, box-shadow 0.18s ease, background-color 0.18s ease;
+    }
+
+    .button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 8px 18px rgba(55, 76, 142, 0.14);
+    }
+
+    .button:active {
+        transform: scale(0.97);
+        opacity: 0.92;
+        box-shadow: none;
+    }
+
+    .button.is-link.is-light {
+        background-color: var(--accent-soft);
+        color: #3b5bdb;
+        border: none;
+    }
+
+    .button.is-link.is-light:hover {
+        background-color: #dbe4ff;
+    }
+
+    .button.is-info.is-light {
+        background-color: #e6fcf5;
+        color: #087f5b;
+        border: none;
+    }
+
+    .button.is-info.is-light:hover {
+        background-color: #c3fae8;
+    }
+
+    .button.is-primary {
+        background-color: #cdb4db;
+        border: none;
+        color: #2f2f2f;
+    }
+
+    .button.is-primary:hover {
+        background-color: #b89ad3;
+    }
+
+    .button.is-dark {
+        background-color: #2f3f71;
+    }
+
+    .button.is-dark:hover {
+        background-color: #27345d;
+    }
+
+    .button.is-info {
+        background-color: var(--accent-strong);
+        border: none;
+    }
+
+    .button.is-info:hover {
+        background-color: #6679e9;
+    }
+
+    /* Horizontal rules */
+    hr {
+        background-color: var(--line);
+        height: 1px;
+        border: none;
+        margin: 2rem 0;
+    }
+
+    /* Helper text */
+    .content.is-small {
+        color: #5f647d;
+    }
+
+    .equal-height {
+        display: flex;
+    }
+
+    .equal-height .box {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+
+    .notification {
+        border-radius: 10px;
+        border: 1px solid rgba(220, 227, 252, 0.8);
+    }
+
+    .table {
+        border-radius: 12px;
+        overflow: hidden;
+        background: #fff;
+        border: 1px solid var(--line);
+    }
+
+    .table thead th {
+        color: #4b5378;
+        background: #f1f4ff;
+        border-color: #dbe3ff;
+    }
+
+    .table td,
+    .table th {
+        vertical-align: middle;
+        border-color: #edf1ff;
+    }
+
+    .table.is-striped tbody tr:not(.is-selected):nth-child(even) {
+        background-color: #fafbff;
+    }
+
+    .table.is-hoverable tbody tr:not(.is-selected):hover {
+        background-color: #eef3ff;
+    }
+
+    .table.is-zebra-neutral tbody tr:not(.is-selected):nth-child(odd) {
+        background-color: #ffffff;
+    }
+
+    .table.is-zebra-neutral tbody tr:not(.is-selected):nth-child(even) {
+        background-color: #f3f4f6;
+    }
+
+    .table.is-zebra-neutral.is-hoverable tbody tr:not(.is-selected):hover {
+        background-color: #e9eaee;
+    }
+
+    .sticky-prompts {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+    }
+
+    .prompt-collapse-body {
+        overflow: hidden;
+        opacity: 1;
+        transform: translateY(0);
+        transition:
+            height 0.34s cubic-bezier(0.22, 1, 0.36, 1),
+            opacity 0.22s ease,
+            transform 0.34s cubic-bezier(0.22, 1, 0.36, 1);
+        will-change: height, opacity, transform;
+    }
+
+    .prompt-collapse-body.is-collapsed {
+        opacity: 0;
+        transform: translateY(-10px);
+        pointer-events: none;
+    }
+
+    .prompt-toggle-icon {
+        display: inline-block;
+        transition: transform 0.34s cubic-bezier(0.22, 1, 0.36, 1);
+        transform-origin: center;
+    }
+
+    .card-header-icon[aria-expanded="false"] .prompt-toggle-icon {
+        transform: rotate(-90deg);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .prompt-collapse-body,
+        .prompt-toggle-icon {
+            transition: none !important;
+        }
+    }
+
+    /* NAV LINK BASE */
+    .navbar {
+        margin: 1rem auto 1.8rem !important;
+        max-width: 1160px;
+        border-radius: 14px;
+        background: linear-gradient(135deg, #445da8, #566fbd) !important;
+        box-shadow: 0 16px 34px rgba(47, 66, 124, 0.28);
+    }
+
+    .navbar-item {
+        color: #eef2ff;
+    }
+
+    .navbar-brand .navbar-item {
+        font-weight: 700;
+        letter-spacing: 0.01em;
+        color: #fff;
+    }
+
+    .navbar-item.is-disabled {
+        opacity: 0.4;
+        pointer-events: none;
+        cursor: not-allowed;
+    }
+    .nav-links .nav-link {
+        background: transparent !important;
+        border: none !important;
+        font-weight: 600;
+        position: relative;
+        padding: 0.5rem 0.75rem;
+        transition: color 0.2s ease;
+        color: #edf2ff !important;
+    }
+    .navbar-link.nav-link:not(.is-arrowless)::after {
+        border-color: #edf2ff;
+    }
+
+    .disabled {
+        pointer-events: none;
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    /* Hover underline animation */
+    .nav-links .nav-link::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        bottom: 8px;
+        width: 0%;
+        height: 2px;
+        background-color: var(--warn);
+        transition: width 0.25s ease;
+    }
+
+    .nav-links .nav-link:hover::after {
+        width: 100%;
+    }
+
+    /* Active highlight */
+    .nav-active {
+        color: #fde68a !important;
+    }
+
+    .nav-links .nav-active::after {
+        width: 100% !important;
+    }
+
+    /* Secondary active */
+    .nav-active-secondary {
+        color: #a4b3c9 !important;
+    }
+
+    .nav-links .nav-active-secondary::after {
+        background-color: #9ca3af;
+        width: 100% !important;
+    }
+
+    .navbar-end .navbar-link.nav-active-secondary {
+        box-shadow: inset 0 -2px 0 #9ca3af;
+    }
+
+    .navbar-end .navbar-link.nav-active-secondary:not(.is-arrowless)::after {
+        border-color: #a4b3c9;
+    }
+
+    /* Admin */
+    .nav-admin {
+        color: #dc2626 !important;
+    }
+
+    .nav-admin::after {
+        background-color: #dc2626;
+    }
+
+    .navbar-dropdown {
+        border-radius: 10px;
+        border: 1px solid #dbe3ff;
+        box-shadow: 0 12px 24px rgba(47, 66, 124, 0.18);
+    }
+
+    .navbar-dropdown .navbar-item {
+        color: #3b4264 !important;
+        font-weight: 600;
+    }
+
+    .navbar-dropdown .navbar-item:hover {
+        background-color: #eef3ff;
+        color: #2f3a63 !important;
+    }
+
+    .navbar-dropdown .navbar-item.is-active {
+        background-color: #e3ebff;
+        color: #2b3975 !important;
+    }
+
+    @media (max-width: 1023px) {
+        .navbar-brand {
+            align-items: center;
+        }
+
+        .navbar-burger {
+            color: #eef2ff;
+            margin-left: auto;
+            margin-right: 0.25rem;
+        }
+
+        .navbar-menu {
+            background: linear-gradient(180deg, #4b63b1, #4f67b7);
+            border-radius: 0 0 12px 12px;
+            box-shadow: 0 10px 20px rgba(47, 66, 124, 0.22);
+        }
+
+        .navbar-menu .navbar-item,
+        .navbar-menu .navbar-link {
+            color: #eef2ff !important;
+        }
+
+        .navbar-menu .navbar-dropdown {
+            background: #eef3ff;
+            border-radius: 10px;
+            margin: 0.25rem 0.75rem 0.75rem;
+        }
+
+        .navbar-menu .navbar-dropdown .navbar-item {
+            color: #2f3a63 !important;
+        }
+
+        .navbar {
+            border-radius: 0;
+            margin: 0 0 1.2rem !important;
+            max-width: 100%;
+        }
+
+        .container {
+            padding-left: 0.85rem;
+            padding-right: 0.85rem;
+        }
+    }
+
+    </style>
+  {% endblock %}
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.6/dist/purify.min.js"></script>
+</head>
+
+<body class="{% if request.endpoint == 'auth.login' %}login-page{% endif %}">
+    
+    <nav class="navbar is-link mb-5" role="navigation">
+    <div class="navbar-brand">
+        <a class="navbar-item">
+        Annotating Begumpura
+        </a>
+        <a role="button"
+           class="navbar-burger"
+           aria-label="menu"
+           aria-expanded="false"
+           data-target="appNavbarMenu">
+          <span aria-hidden="true"></span>
+          <span aria-hidden="true"></span>
+          <span aria-hidden="true"></span>
+        </a>
+    </div>
+
+    <div id="appNavbarMenu" class="navbar-menu">
+        <div class="navbar-start nav-links">
+
+        <!-- Annotate -->
+        <a class="navbar-item nav-link
+            {% if request.endpoint in ['annotate','freshannotate'] %}
+                nav-active
+            {% endif %}"
+            href="{{ url_for('freshannotate') }}">
+            Annotate
+        </a>
+
+        <a class="navbar-item nav-link
+            {% if request.endpoint == 'prompt_review' %}
+                nav-active
+            {% endif %}"
+            href="{{ url_for('prompt_review') }}">
+            Review
+        </a>
+
+        <!-- Load -->
+        <a class="navbar-item nav-link
+            {% if request.endpoint == 'load_annotation' %}
+                nav-active
+            {% endif %}"
+        href="{{ url_for('load_annotation') }}"
+        target="_blank"
+        rel="noopener noreferrer">
+        Load
+        </a>
+
+        <!-- Notes -->
+        <a class="navbar-item nav-link
+            {% if request.endpoint == 'notes' %}
+                nav-active
+            {% endif %}"
+        href="{{ url_for('notes') }}"
+        target="_blank"
+        rel="noopener noreferrer">
+        Notes
+        </a>
+
+        <!-- Admin -->
+        {% if session.get("user") and session["user"]["role"] == "admin" %}
+        <a class="navbar-item nav-link nav-admin
+            {% if request.endpoint == 'admin' %}
+                nav-active-admin
+            {% endif %}"
+            href="{{ url_for('admin') }}">
+            Admin
+        </a>
+        {% endif %}
+
+        </div>
+
+        <div class="navbar-end">
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link nav-link
+              {% if request.endpoint in ['examples', 'references'] %}
+                nav-active-secondary
+              {% endif %}">
+              Annotator Resources
+          </a>
+          <div class="navbar-dropdown is-boxed is-right">
+            <a class="navbar-item"
+              href="https://drive.google.com/file/d/1Kuw8nA1v3RSPoc0Eog0Wt1zrc3fD_MYr/view?usp=sharing"
+              target="_blank"
+              rel="noopener noreferrer">
+              Annotation Guidelines
+            </a>
+            <a class="navbar-item"
+              href="https://drive.google.com/file/d/18DQC_VK6z3JY2wc2K-gp4I5sHp6yiWZP/view?usp=share_link"
+              target="_blank"
+              rel="noopener noreferrer">
+              Inter-Annotator Review Guidelines
+            </a>
+            <a class="navbar-item"
+              href="https://drive.google.com/file/d/1CoQFnuNzxFdXvoR2Rihsxa_wA9D8uo1y/view?usp=share_link"
+              target="_blank"
+              rel="noopener noreferrer">
+              Training Video
+            </a>
+            {% if show_timesheet_link %}
+            <a class="navbar-item"
+              href="https://docs.google.com/spreadsheets/d/13oEnf-RVW7zAfsqBnALwMBLsRJruaxcHPZvD_ZAOQrM/edit?usp=sharing"
+              target="_blank"
+              rel="noopener noreferrer">
+              Timesheet
+            </a>
+            {% endif %}
+            <a class="navbar-item {% if request.endpoint == 'examples' %}is-active{% endif %}"
+              href="{{ url_for('examples') }}"
+              target="_blank">
+              Examples
+            </a>
+            <a class="navbar-item {% if request.endpoint == 'references' %}is-active{% endif %}"
+              href="{{ url_for('references') }}"
+              target="_blank">
+              References
+            </a>
+          </div>
+        </div>
+        {% if session.get("user") %}
+            <div class="navbar-item">
+            <span class="mr-2 is-size-6 has-text-warning">
+                Hello, {{ session["user"]["username"] }}
+            </span>
+            <a class="button is-light is-small"
+                href="{{ url_for('auth.logout') }}">
+                Logout
+            </a>
+            </div>
+        {% endif %}
+        </div>
+    </div>
+    </nav>
+
+  <div class="container">
+    {% block content %}{% endblock %}
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const burgers = document.querySelectorAll(".navbar-burger");
+      burgers.forEach((burger) => {
+        burger.addEventListener("click", () => {
+          const targetId = burger.dataset.target;
+          const target = document.getElementById(targetId);
+          burger.classList.toggle("is-active");
+          if (target) {
+            target.classList.toggle("is-active");
+          }
+          burger.setAttribute("aria-expanded", burger.classList.contains("is-active") ? "true" : "false");
+        });
+      });
+
+      const isMobile = () => window.matchMedia("(max-width: 1023px)").matches;
+      const dropdownLinks = document.querySelectorAll(".navbar-item.has-dropdown > .navbar-link");
+      dropdownLinks.forEach((link) => {
+        link.addEventListener("click", (event) => {
+          if (!isMobile()) return;
+          event.preventDefault();
+          const parent = link.parentElement;
+          if (parent) {
+            parent.classList.toggle("is-active");
+          }
+        });
+      });
+    });
+
+    function toggleCollapsiblePanel(bodyId, iconId) {
+      const body = document.getElementById(bodyId);
+      const icon = document.getElementById(iconId);
+      const toggleBtn = icon ? icon.closest("button") : null;
+      if (!body || !icon) return;
+
+      const isCollapsed = body.dataset.collapsed === "true";
+
+      if (!body.classList.contains("prompt-collapse-body")) {
+        body.classList.add("prompt-collapse-body");
+      }
+
+      if (isCollapsed) {
+        body.hidden = false;
+        body.classList.remove("is-collapsed");
+        body.style.height = "0px";
+        body.offsetHeight;
+        body.style.height = `${body.scrollHeight}px`;
+      } else {
+        body.style.height = `${body.scrollHeight}px`;
+        body.offsetHeight;
+        body.classList.add("is-collapsed");
+        body.style.height = "0px";
+      }
+
+      body.dataset.collapsed = String(!isCollapsed);
+      icon.textContent = isCollapsed ? "▾" : "▸";
+      if (toggleBtn) {
+        toggleBtn.setAttribute("aria-expanded", String(isCollapsed));
+      }
+    }
+
+    document.addEventListener("transitionend", function (event) {
+      const body = event.target;
+      if (!body.classList || event.propertyName !== "height") return;
+
+      if (body.classList.contains("prompt-collapse-body") || body.classList.contains("review-collapse-body")) {
+        if (body.dataset.collapsed === "true") {
+          body.hidden = true;
+        } else {
+          body.style.height = "auto";
+        }
+      }
+    });
+
+    function renderMarkdownElement(element, rawText) {
+      if (!element) return;
+
+      const sourceText = String(rawText == null ? "" : rawText).trim();
+      if (!sourceText) {
+        element.innerHTML = "";
+        return;
+      }
+
+      if (window.marked && window.DOMPurify) {
+        const rendered = window.marked.parse(sourceText, {
+          breaks: true,
+          gfm: true
+        });
+        element.innerHTML = window.DOMPurify.sanitize(rendered);
+      } else {
+        element.textContent = sourceText;
+      }
+    }
+
+    function renderStaticMarkdownBlocks() {
+      document.querySelectorAll("[data-markdown-static]").forEach((element) => {
+        renderMarkdownElement(element, element.textContent);
+      });
+    }
+
+    window.renderMarkdownElement = renderMarkdownElement;
+
+    document.addEventListener("DOMContentLoaded", function () {
+      renderStaticMarkdownBlocks();
+    });
+  </script>
+
+  {% block scripts %}{% endblock %}
+</body>
+</html>

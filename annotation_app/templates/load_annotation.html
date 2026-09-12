@@ -1,0 +1,252 @@
+{% extends "layout/base.html" %}
+
+{% block styles %}
+{{ super() }}
+<style>
+  .load-table {
+    table-layout: fixed;
+  }
+
+  .load-table th {
+    font-size: 0.9rem;
+    line-height: 1.2;
+    white-space: normal;
+    word-break: break-word;
+  }
+
+  .load-table td {
+    padding-top: 0.9rem;
+    padding-bottom: 0.9rem;
+    vertical-align: top;
+  }
+
+  .load-table .prompt-preview {
+    max-height: 8rem;
+    overflow: auto;
+    display: block;
+    margin: 0;
+    padding: 0.65rem 0.75rem;
+    line-height: 1.45;
+    white-space: pre-wrap;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    text-align: left;
+    background: #fcfcfe;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+  }
+
+  .load-table .status-tag {
+    min-width: 6.75rem;
+    justify-content: center;
+    font-weight: 600;
+  }
+
+  .load-table .addressed-col,
+  .load-table .addressed-cell {
+    width: 5.75rem;
+    text-align: center;
+  }
+
+  .load-table .addressed-col {
+    padding-left: 0.35rem;
+    padding-right: 0.35rem;
+  }
+
+  .load-table .addressed-cell {
+    padding-left: 0.35rem;
+    padding-right: 0.35rem;
+  }
+
+  .load-table .comments-preview {
+    display: block;
+    width: 100%;
+    max-height: 8rem;
+    overflow: auto;
+    margin: 0;
+    white-space: pre-wrap;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    text-align: left;
+    vertical-align: top;
+    font-family: monospace;
+    font-size: 0.8rem;
+    line-height: 1.45;
+    background: #f8fafc;
+    border: 1px solid #d7deea;
+    border-radius: 10px;
+    padding: 0.65rem 0.75rem;
+  }
+
+  .load-table tbody tr.is-accepted-row td {
+    border-top: 2px solid #48c78e;
+    border-bottom: 2px solid #48c78e;
+    background: rgba(72, 199, 142, 0.05);
+  }
+
+  .load-table tbody tr.is-rejected-row td {
+    border-top: 2px solid #f14668;
+    border-bottom: 2px solid #f14668;
+    background: rgba(241, 70, 104, 0.05);
+  }
+
+  .load-table tbody tr.is-restructure-row td {
+    border-top: 2px solid #f1b545;
+    border-bottom: 2px solid #f1b545;
+    background: rgba(241, 181, 69, 0.09);
+  }
+
+  .load-table tbody tr.is-accepted-row td:first-child,
+  .load-table tbody tr.is-rejected-row td:first-child,
+  .load-table tbody tr.is-restructure-row td:first-child {
+    border-left: 2px solid;
+  }
+
+  .load-table tbody tr.is-accepted-row td:last-child,
+  .load-table tbody tr.is-rejected-row td:last-child,
+  .load-table tbody tr.is-restructure-row td:last-child {
+    border-right: 2px solid;
+  }
+
+  .load-table tbody tr.is-accepted-row td:first-child,
+  .load-table tbody tr.is-accepted-row td:last-child {
+    border-color: #48c78e;
+  }
+
+  .load-table tbody tr.is-rejected-row td:first-child,
+  .load-table tbody tr.is-rejected-row td:last-child {
+    border-color: #f14668;
+  }
+
+  .load-table tbody tr.is-restructure-row td:first-child,
+  .load-table tbody tr.is-restructure-row td:last-child {
+    border-color: #f1b545;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<section class="section pt-1">
+  <div class="container">
+
+    <div class="card mb-5">
+      <div class="card-content">
+        <h1 class="title is-4">Load Annotation</h1>
+        <p class="subtitle mb-0">Resume and edit your previous entries.</p>
+      </div>
+    </div>
+
+    {% if error %}
+      <div class="notification is-danger is-light mb-5">
+        {{ error }}
+      </div>
+    {% endif %}
+
+    <div class="card mb-5">
+      <div class="card-content">
+        <h2 class="title is-5">Load by Annotation ID</h2>
+        <form method="POST">
+          <div class="field has-addons">
+            <div class="control is-expanded">
+              <input class="input"
+                     type="text"
+                     name="annotation_id"
+                     placeholder="Enter your annotation ID…"
+                     autocomplete="off"
+                     required>
+            </div>
+            <div class="control">
+              <input type="hidden" name="load_mode" value="edit">
+              <button class="button is-link" type="submit">Load</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-content">
+        <h2 class="title is-5">Your Previous Annotations</h2>
+
+        {% if not user_records %}
+          <p>No annotations submitted yet.</p>
+        {% else %}
+          <table class="table is-fullwidth is-hoverable is-zebra-neutral load-table">
+            <thead>
+              <tr>
+                <th width="7%">Sr. No.</th>
+                <th width="14%">ID</th>
+                <th width="10%">State</th>
+                <th width="10%">Status</th>
+                <th>Base Prompt</th>
+                <th width="22%">Comments</th>
+                <th width="8%"></th>
+                <th class="addressed-col">Addressed</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for r in user_records|reverse %}
+              {% set reviewed_by = review_counts.get(r.id, 0) %}
+              <tr class="{% if r._acceptance_status == 'accepted' %}is-accepted-row{% elif r._acceptance_status == 'needs_restructuring' %}is-restructure-row{% elif r._acceptance_status == 'rejected' %}is-rejected-row{% endif %}">
+                <td>{{ loop.index }}.</td>
+                <td style="font-family: monospace; font-size: 0.85rem;">
+                  {{ r.id }}
+                </td>
+
+                <td>
+                  {{ r.state }}
+                </td>
+
+                <td>
+                  {% if r._is_completed %}
+                    <span class="tag is-success is-light status-tag">Completed</span>
+                  {% else %}
+                    <span class="tag is-warning is-light status-tag">Draft</span>
+                  {% endif %}
+                </td>
+
+                <td>
+                  <pre class="prompt-preview" title="{{ r.prompts.base }}">{{- r.prompts.base -}}</pre>
+                </td>
+
+                <td>
+                  <pre class="comments-preview">{{- r.expert_reviews or "No expert reviewer comments yet." -}}</pre>
+                </td>
+
+                <td>
+                  <form method="POST" style="display:inline;">
+                    <input type="hidden"
+                           name="annotation_id"
+                           value="{{ r.id }}">
+                    <input type="hidden" name="load_mode" value="edit">
+                    <button class="button is-small is-link is-light"
+                            {% if reviewed_by >= 1 and r._acceptance_status != "needs_restructuring" %}disabled{% endif %}>
+                      Edit
+                    </button>
+                  </form>
+                </td>
+
+                <td class="addressed-cell">
+                  {% if r._acceptance_status == "needs_restructuring" %}
+                    {% if r._annotator_addressed_status == "yes" %}
+                      <span class="has-text-success has-text-weight-semibold">Yes</span>
+                    {% else %}
+                      <span class="has-text-warning-dark has-text-weight-semibold">Pending</span>
+                    {% endif %}
+                  {% else %}
+                    <span class="has-text-grey-light">—</span>
+                  {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% endif %}
+      </div>
+    </div>
+
+  </div>
+</section>
+
+{% endblock %}

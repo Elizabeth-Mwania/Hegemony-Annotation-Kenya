@@ -1,0 +1,965 @@
+{% extends "layout/base.html" %}
+
+{% block styles %}
+{{ super() }}
+<style>
+  .admin-query-table td {
+    padding-top: 0.9rem;
+    padding-bottom: 0.9rem;
+    vertical-align: top;
+  }
+
+  .admin-query-table {
+    table-layout: fixed;
+  }
+
+  .admin-query-table th {
+    font-size: 0.9rem;
+    line-height: 1.2;
+    white-space: normal;
+    word-break: break-word;
+  }
+  .admin-query-table .prompt-preview {
+    -webkit-line-clamp: 10; /* instead of 8 */
+  }
+
+  .admin-query-table .prompt-preview {
+    max-height: 220px;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 8;
+    -webkit-box-orient: vertical;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .admin-query-table .prompt-label {
+    display: block;
+    margin-bottom: 0.35rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #5f647d;
+  }
+
+  .admin-query-table .prompt-details {
+    margin-top: 0.75rem;
+  }
+
+  .admin-query-table .prompt-details summary {
+    cursor: pointer;
+    color: #7a819d;
+    font-size: 0.82rem;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+  }
+
+  .admin-query-table .prompt-details[open] summary {
+    margin-bottom: 0.5rem;
+  }
+
+  .admin-query-table .prompt-details summary:hover {
+    color: #5f6786;
+  }
+
+  .admin-query-table .prompt-detail-body {
+    max-height: 220px;
+    overflow-y: auto;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .admin-query-table .status-tag {
+    min-width: 6.75rem;
+    justify-content: center;
+    font-weight: 600;
+  }
+
+  .admin-query-table .acceptance-cell {
+    text-align: center;
+    vertical-align: middle;
+  }
+
+  .admin-query-table .acceptance-mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.6rem;
+    height: 1.6rem;
+    border-radius: 999px;
+    border: 1.5px solid transparent;
+    font-size: 0.85rem;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .admin-query-table .acceptance-mark.pending {
+    border-style: dashed;
+    border-color: rgba(149, 157, 178, 0.8);
+    color: rgba(149, 157, 178, 0.9);
+    background-color: transparent;
+  }
+
+  .admin-query-table .acceptance-mark.accepted {
+    border-color: #48a868;
+    color: #2f8f4e;
+    background-color: rgba(72, 168, 104, 0.12);
+  }
+
+  .admin-query-table .acceptance-mark.rejected {
+    border-color: #df5f5f;
+    color: #c23d3d;
+    background-color: rgba(223, 95, 95, 0.12);
+  }
+
+  .admin-query-table .acceptance-mark.restructure {
+    border-color: #d7a33d;
+    color: #9a6700;
+    background-color: rgba(241, 181, 69, 0.16);
+  }
+
+  .admin-query-table .addressed-cell {
+    text-align: center;
+    vertical-align: middle;
+  }
+
+  .admin-query-table .addressed-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 3.8rem;
+    padding: 0.2rem 0.45rem;
+    border-radius: 999px;
+    font-size: 0.74rem;
+    font-weight: 700;
+    border: 1px solid transparent;
+  }
+
+  .admin-query-table .addressed-pill.yes {
+    color: #1f6f4a;
+    background: #e8f8f0;
+    border-color: #bde8d3;
+  }
+
+  .admin-query-table .addressed-pill.no {
+    color: #b45309;
+    background: #fff7e6;
+    border-color: #f2ddb1;
+  }
+
+  .admin-query-table .addressed-pill.pending {
+    color: #6b7280;
+    background: #f3f4f6;
+    border-color: #d1d5db;
+  }
+
+  .admin-query-table tbody tr.onboarded-row td {
+    background-color: #f6fff8 !important;
+    box-shadow: inset 0 2px 0 #7bc48b, inset 0 -2px 0 #7bc48b;
+  }
+
+  .admin-query-table tbody tr.onboarded-row td:first-child {
+    box-shadow: inset 2px 0 0 #7bc48b, inset 0 2px 0 #7bc48b, inset 0 -2px 0 #7bc48b;
+  }
+
+  .admin-query-table tbody tr.onboarded-row td:last-child {
+    box-shadow: inset -2px 0 0 #7bc48b, inset 0 2px 0 #7bc48b, inset 0 -2px 0 #7bc48b;
+  }
+
+  .daily-progress-shell {
+    padding: 1rem 1.1rem 0.75rem;
+    border-radius: 18px;
+    background:
+      radial-gradient(circle at top left, rgba(14, 165, 233, 0.12), transparent 32%),
+      radial-gradient(circle at top right, rgba(34, 197, 94, 0.1), transparent 28%),
+      linear-gradient(180deg, #fbfdff 0%, #f3f8ff 100%);
+    border: 1px solid #d8e7fb;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85);
+  }
+
+  .daily-progress-summary {
+    display: flex;
+    gap: 0.9rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.85rem;
+  }
+
+  .daily-progress-chip {
+    padding: 0.55rem 0.8rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.78);
+    border: 1px solid rgba(132, 158, 196, 0.28);
+    color: #244368;
+    font-size: 0.86rem;
+    font-weight: 600;
+  }
+
+  .admin-stats-placeholder {
+    border: 1px dashed #c8d5ef;
+    border-radius: 14px;
+    background: #fbfcff;
+    padding: 1.1rem 1.15rem;
+  }
+
+  .iaa-review-stats-shell {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .iaa-review-state-card {
+    border: 1px solid #d8e7fb;
+    border-radius: 16px;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+    padding: 1rem 1.05rem;
+  }
+
+  .iaa-review-state-title {
+    color: #244368;
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+  }
+
+  .iaa-review-state-card table th,
+  .iaa-review-state-card table td {
+    vertical-align: middle;
+  }
+
+  .admin-dashboard-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .admin-dashboard-header-copy {
+    flex: 1 1 340px;
+    min-width: 0;
+  }
+
+  .admin-dashboard-header-copy .subtitle {
+    white-space: normal;
+    word-break: break-word;
+  }
+
+  .admin-dashboard-header-actions {
+    flex: 0 0 auto;
+  }
+
+  .pagination-shell {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.8rem;
+    flex-wrap: wrap;
+    margin-top: 1rem;
+  }
+
+  .pagination-meta {
+    color: #667085;
+    font-size: 0.9rem;
+  }
+
+  .summary-tooltip-shell {
+    position: relative;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: default;
+  }
+
+  .summary-tooltip-popover {
+    position: absolute;
+    top: calc(100% + 0.55rem);
+    left: 50%;
+    transform: translateX(-50%);
+    min-width: 13rem;
+    padding: 0.7rem 0.8rem;
+    border-radius: 12px;
+    background: rgba(18, 24, 38, 0.96);
+    color: #f8fafc;
+    box-shadow: 0 14px 30px rgba(15, 23, 42, 0.22);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.16s ease, visibility 0.16s ease;
+    z-index: 10;
+    text-align: left;
+  }
+
+  .summary-tooltip-popover::before {
+    content: "";
+    position: absolute;
+    top: -6px;
+    left: 50%;
+    width: 12px;
+    height: 12px;
+    transform: translateX(-50%) rotate(45deg);
+    background: rgba(18, 24, 38, 0.96);
+  }
+
+  .summary-tooltip-shell:hover .summary-tooltip-popover,
+  .summary-tooltip-shell:focus-within .summary-tooltip-popover {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .summary-tooltip-list {
+    display: grid;
+    gap: 0.45rem;
+  }
+
+  .summary-tooltip-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.9rem;
+    font-size: 0.84rem;
+    line-height: 1.2;
+  }
+
+  .summary-tooltip-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+  }
+
+  .summary-tooltip-dot {
+    width: 0.68rem;
+    height: 0.68rem;
+    border-radius: 999px;
+    flex: 0 0 auto;
+  }
+
+  .summary-tooltip-dot.green {
+    background: #48c774;
+  }
+
+  .summary-tooltip-dot.yellow {
+    background: #f4c542;
+  }
+
+  .summary-tooltip-dot.red {
+    background: #f14668;
+  }
+
+  .summary-tooltip-value {
+    font-weight: 700;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<section class="section pt-1">
+  <div class="container">
+
+    <div class="card mb-5">
+      <div class="card-content">
+        <div class="is-flex is-justify-content-space-between is-align-items-center is-flex-wrap-wrap" style="gap: 0.75rem;">
+          <div>
+            <h1 class="title mb-1">Admin – Manage Annotations</h1>
+          </div>
+          <div class="is-flex is-flex-wrap-wrap" style="gap: 0.6rem;">
+            <a class="button is-link is-light" href="{{ url_for('export_annotations_csv') }}">
+              Export Dataset CSV
+            </a>
+            <a class="button is-link is-light" href="{{ url_for('export_iaa_reviews_csv') }}">
+              Export IAA CSV
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {% if error %}
+      <div class="notification is-warning is-light mb-5">{{ error }}</div>
+    {% endif %}
+
+    <div class="card mb-5">
+      <div class="card-content">
+        <div class="admin-dashboard-header mb-3">
+          <div class="admin-dashboard-header-copy">
+            <h2 class="title is-5 mb-1">Dashboard Stats</h2>
+          </div>
+          <div class="admin-dashboard-header-actions">
+            <button id="loadDashboardStatsBtn"
+                    class="button is-info is-light"
+                    type="button"
+                    data-url="{{ url_for('admin_dashboard_stats') }}">
+              Load Dashboard Stats
+            </button>
+          </div>
+        </div>
+        <div id="adminDashboardStats" class="admin-stats-placeholder">
+          <p class="has-text-weight-semibold mb-2">Dashboard stats are not loaded yet.</p>
+          <p class="has-text-grey mb-0">Use the button above to fetch the summary cards and progress visualizations dynamically.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card mb-5">
+      <div class="card-content">
+        <div class="admin-dashboard-header mb-3">
+          <div class="admin-dashboard-header-copy">
+            <h2 class="title is-5 mb-1">Inter-Annotator Review Stats</h2>
+          </div>
+          <div class="admin-dashboard-header-actions">
+            <button id="loadIaaReviewStatsBtn"
+                    class="button is-info is-light"
+                    type="button"
+                    data-url="{{ url_for('admin_inter_annotator_review_stats') }}">
+              Load Inter-Annotator Review Stats
+            </button>
+          </div>
+        </div>
+        <div id="adminIaaReviewStats" class="admin-stats-placeholder">
+          <p class="has-text-weight-semibold mb-2">Inter-annotator review stats are not loaded yet.</p>
+          <p class="has-text-grey mb-0">Use the button above to fetch the state-wise reviewer completion counts dynamically.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card mb-5">
+      <div class="card-content">
+        <h2 class="title is-5">Query Annotations</h2>
+        <form method="GET" action="{{ url_for('admin') }}">
+          <div class="columns is-variable is-4">
+            <div class="column">
+              <label class="label">State</label>
+              <div class="control select is-fullwidth">
+                <select name="state">
+                  <option value="">All States</option>
+                  {% for state in available_states %}
+                    <option value="{{ state }}" {% if query_state == state %}selected{% endif %}>
+                      {{ state }}
+                    </option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+            <div class="column">
+              <label class="label">Validation</label>
+              <div class="control select is-fullwidth">
+                <select name="validation">
+                  <option value="" {% if not query_validation %}selected{% endif %}>All</option>
+                  <option value="validated" {% if query_validation == "validated" %}selected{% endif %}>Validated</option>
+                  <option value="non_validated" {% if query_validation == "non_validated" %}selected{% endif %}>Non-Validated</option>
+                </select>
+              </div>
+            </div>
+            <div class="column">
+              <label class="label">Annotator Name</label>
+              <input class="input"
+                     type="text"
+                     name="annotator"
+                     value="{{ query_annotator }}"
+                     placeholder="Enter full/partial name">
+            </div>
+            <div class="column">
+              <label class="label">Sort By</label>
+              <div class="control select is-fullwidth">
+                <select name="sort">
+                  {% for sort_key, sort_label in sort_options.items() %}
+                    <option value="{{ sort_key }}" {% if query_sort == sort_key %}selected{% endif %}>{{ sort_label }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="field mt-1">
+            <label class="label">Annotator Scope</label>
+            <label class="radio mr-4">
+              <input type="radio" name="onboarded" value="" {% if not query_onboarded %}checked{% endif %}>
+              All Annotators
+            </label>
+            <label class="radio mr-4">
+              <input type="radio" name="onboarded" value="only" {% if query_onboarded == "only" %}checked{% endif %}>
+              Onboarded Only
+            </label>
+          </div>
+
+          <div class="field mt-1">
+            <label class="label">Drafts</label>
+            <label class="radio mr-4">
+              <input type="radio" name="drafts" value="all" {% if query_drafts == "all" %}checked{% endif %}>
+              Show All
+            </label>
+            <label class="radio mr-4">
+              <input type="radio" name="drafts" value="hide" {% if query_drafts == "hide" %}checked{% endif %}>
+              Remove Drafts
+            </label>
+          </div>
+
+          <div class="field is-grouped mt-2">
+            <p class="control">
+              <button class="button is-info" type="submit">Search</button>
+            </p>
+            <p class="control">
+              <a class="button is-light" href="{{ url_for('admin') }}">Reset</a>
+            </p>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="card mb-5">
+      <div class="card-content">
+        {% if show_query_summary %}
+          <div class="columns is-multiline mb-3">
+            <div class="column is-4">
+              <div class="box has-text-centered">
+                <p class="heading">Total</p>
+                <p class="title is-4">{{ query_summary_counts.total }}</p>
+              </div>
+            </div>
+            <div class="column is-4">
+              <div class="box has-text-centered">
+                <div class="summary-tooltip-shell" tabindex="0">
+                  <p class="heading mb-1">Reviewed</p>
+                  <div class="summary-tooltip-popover">
+                    <div class="summary-tooltip-list">
+                      <div class="summary-tooltip-row">
+                        <span class="summary-tooltip-label">
+                          <span class="summary-tooltip-dot green"></span>
+                          Approved
+                        </span>
+                        <span class="summary-tooltip-value">{{ query_summary_counts.approved }}</span>
+                      </div>
+                      <div class="summary-tooltip-row">
+                        <span class="summary-tooltip-label">
+                          <span class="summary-tooltip-dot yellow"></span>
+                          Needs Restructuring
+                        </span>
+                        <span class="summary-tooltip-value">{{ query_summary_counts.needs_restructuring }}</span>
+                      </div>
+                      <div class="summary-tooltip-row">
+                        <span class="summary-tooltip-label">
+                          <span class="summary-tooltip-dot red"></span>
+                          Rejected
+                        </span>
+                        <span class="summary-tooltip-value">{{ query_summary_counts.rejected }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <p class="title is-4">{{ query_summary_counts.validated }}</p>
+              </div>
+            </div>
+            <div class="column is-4">
+              <div class="box has-text-centered">
+                <p class="heading">Approved</p>
+                <p class="title is-4">{{ query_summary_counts.approved }}</p>
+              </div>
+            </div>
+          </div>
+        {% endif %}
+        <div class="is-flex is-justify-content-space-between is-align-items-center mb-3">
+          <h2 class="title is-5 mb-0">Query Results ({{ total_filtered_records }})</h2>
+          {% if filtered_records %}
+            <a class="button is-success is-light is-small" href="{{ csv_download_url }}">
+              Download Filtered CSV
+            </a>
+          {% endif %}
+        </div>
+        {% if not filtered_records %}
+          <p>No annotations match the selected filters.</p>
+        {% else %}
+          <table class="table is-fullwidth is-hoverable is-zebra-neutral admin-query-table">
+            <thead>
+              <tr>
+                <th width="7%">Sr. No.</th>
+                <th width="9%">Date</th>
+                <th width="10%">State</th>
+                <th width="9%">Annotator</th>
+                <th width="10%">Status</th>
+                <th width="22%">Base Prompt</th>
+                <th width="7%"></th>
+                <th width="10%">Validated</th>
+                <th width="7%">Acceptable</th>
+                <th width="9%">Addressed</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for r in filtered_records %}
+              <tr class="{% if r._is_onboarded %}onboarded-row{% endif %}">
+                <td>{{ ((current_page - 1) * results_per_page) + loop.index }}.</td>
+                <td>{{ (r.timestamp or r.created_at or "")[:10] }}</td>
+                <td>{{ r.state }}</td>
+                <td>{{ r.annotator_name }}</td>
+                <td>
+                  {% if r._is_completed %}
+                    <span class="tag is-success is-light status-tag">Completed</span>
+                  {% else %}
+                    <span class="tag is-warning is-light status-tag">Draft</span>
+                  {% endif %}
+                </td>
+                <td>
+                  <div class="prompt-preview" title="{{ r.prompts.base }}">{{ r.prompts.base }}</div>
+                  <details class="prompt-details">
+                    <summary>Show Identity-Primed Prompt</summary>
+                    <div class="prompt-detail-body" title="{{ r.prompts.identity }}">{{ r.prompts.identity }}</div>
+                  </details>
+                </td>
+                <td>
+                  <a class="button is-small is-link is-light"
+                     href="{{ url_for('admin_load_annotation', annotation_id=r.id) }}">
+                    Load
+                  </a>
+                </td>
+                <td class="acceptance-cell">
+                  {% if r._is_validated %}
+                    <span class="tag is-success is-light status-tag">Validated</span>
+                  {% else %}
+                    <span class="tag is-light status-tag">Pending</span>
+                  {% endif %}
+                </td>
+                <td class="acceptance-cell">
+                  {% if r._acceptance_status == "accepted" %}
+                    <span class="acceptance-mark accepted" title="Acceptable">✓</span>
+                  {% elif r._acceptance_status == "needs_restructuring" %}
+                    <span class="acceptance-mark restructure" title="Needs restructuring">✓</span>
+                  {% elif r._acceptance_status == "rejected" %}
+                    <span class="acceptance-mark rejected" title="Not acceptable">✕</span>
+                  {% else %}
+                    <span class="acceptance-mark pending" title="To be done">…</span>
+                  {% endif %}
+                </td>
+                <td class="addressed-cell">
+                  {% if r._acceptance_status == "needs_restructuring" %}
+                    {% if r._annotator_addressed_status == "yes" %}
+                      <span class="addressed-pill yes">Yes</span>
+                    {% elif r._annotator_addressed_status == "no" %}
+                      <span class="addressed-pill no">No</span>
+                    {% else %}
+                      <span class="addressed-pill pending">Pending</span>
+                    {% endif %}
+                  {% else %}
+                    <span class="has-text-grey-light">—</span>
+                  {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          <div class="pagination-shell">
+            <p class="pagination-meta">
+              Showing {{ ((current_page - 1) * results_per_page) + 1 }}–{{ ((current_page - 1) * results_per_page) + (filtered_records|length) }} of {{ total_filtered_records }}
+            </p>
+            <nav class="pagination is-small" role="navigation" aria-label="pagination">
+              {% if prev_page_url %}
+                <a class="pagination-previous" href="{{ prev_page_url }}">Previous</a>
+              {% else %}
+                <span class="pagination-previous" disabled>Previous</span>
+              {% endif %}
+              {% if next_page_url %}
+                <a class="pagination-next" href="{{ next_page_url }}">Next</a>
+              {% else %}
+                <span class="pagination-next" disabled>Next</span>
+              {% endif %}
+              <ul class="pagination-list">
+                {% for page_number in page_numbers %}
+                  {% if page_number == current_page %}
+                    <li><span class="pagination-link is-current">{{ page_number }}</span></li>
+                  {% else %}
+                    <li><a class="pagination-link" href="{{ page_urls[page_number] }}">{{ page_number }}</a></li>
+                  {% endif %}
+                {% endfor %}
+              </ul>
+            </nav>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+  </div>
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const dashboardStatsContainer = document.getElementById("adminDashboardStats");
+  const loadDashboardStatsBtn = document.getElementById("loadDashboardStatsBtn");
+  const iaaReviewStatsContainer = document.getElementById("adminIaaReviewStats");
+  const loadIaaReviewStatsBtn = document.getElementById("loadIaaReviewStatsBtn");
+  let adminDashboardCharts = [];
+  const statePalette = [
+    "#4F46E5", "#0EA5E9", "#22C55E", "#F59E0B", "#EF4444",
+    "#14B8A6", "#A855F7", "#84CC16", "#EAB308", "#F97316",
+    "#06B6D4", "#10B981", "#F43F5E", "#8B5CF6", "#F97316",
+    "#3B82F6", "#65A30D", "#D97706", "#DC2626", "#7C3AED"
+  ];
+
+  function colorsForStates(labels, stateColorMap) {
+    return labels.map((label) => stateColorMap[label] || "#94A3B8");
+  }
+
+  function destroyAdminDashboardCharts() {
+    adminDashboardCharts.forEach((chart) => chart.destroy());
+    adminDashboardCharts = [];
+  }
+
+  function buildPieChart(canvasId, labels, counts, emptyMessage, stateColorMap) {
+    const ctx = document.getElementById(canvasId);
+    if (!ctx) return;
+    if (counts.some((x) => x > 0)) {
+      const chart = new Chart(ctx, {
+        type: "pie",
+        data: {
+          labels,
+          datasets: [{
+            data: counts,
+            backgroundColor: colorsForStates(labels, stateColorMap),
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { position: "bottom" }
+          }
+        }
+      });
+      adminDashboardCharts.push(chart);
+    } else {
+      ctx.parentElement.insertAdjacentHTML("beforeend", `<p class='has-text-grey'>${emptyMessage}</p>`);
+    }
+  }
+
+  function buildDailyProgressChart(dailyProgress) {
+    const dailyLabels = dailyProgress.map((row) => row.date);
+    const dailyCounts = dailyProgress.map((row) => row.count);
+    const cumulativeCounts = dailyProgress.map((row) => row.cumulative);
+    const dailyCtx = document.getElementById("dailyProgressChart");
+    if (!dailyCtx) return;
+    if (dailyCounts.some((x) => x > 0)) {
+      const gradient = dailyCtx.getContext("2d").createLinearGradient(0, 0, 0, 240);
+      gradient.addColorStop(0, "rgba(14, 165, 233, 0.75)");
+      gradient.addColorStop(1, "rgba(37, 99, 235, 0.15)");
+
+      const chart = new Chart(dailyCtx, {
+        data: {
+          labels: dailyLabels,
+          datasets: [{
+            type: "bar",
+            label: "Daily annotations",
+            data: dailyCounts,
+            backgroundColor: gradient,
+            borderColor: "rgba(14, 116, 144, 0.95)",
+            borderWidth: 1,
+            borderRadius: 8,
+            borderSkipped: false,
+            maxBarThickness: 28,
+            yAxisID: "y",
+          }, {
+            type: "line",
+            label: "Cumulative total",
+            data: cumulativeCounts,
+            borderColor: "#16A34A",
+            backgroundColor: "rgba(22, 163, 74, 0.14)",
+            fill: false,
+            tension: 0.3,
+            pointRadius: 3,
+            pointHoverRadius: 5,
+            pointBackgroundColor: "#16A34A",
+            pointBorderColor: "#ffffff",
+            pointBorderWidth: 2,
+            yAxisID: "y1",
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {
+              position: "bottom",
+              labels: {
+                usePointStyle: true,
+                boxWidth: 10,
+              }
+            },
+            tooltip: {
+              mode: "index",
+              intersect: false,
+            }
+          },
+          interaction: {
+            mode: "index",
+            intersect: false,
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              title: { display: true, text: "Daily Count" },
+              ticks: { precision: 0 }
+            },
+            y1: {
+              beginAtZero: true,
+              position: "right",
+              grid: { drawOnChartArea: false },
+              title: { display: true, text: "Cumulative" },
+              ticks: { precision: 0 }
+            },
+            x: {
+              grid: { display: false }
+            }
+          }
+        }
+      });
+      adminDashboardCharts.push(chart);
+    } else {
+      dailyCtx.parentElement.insertAdjacentHTML("beforeend", "<p class='has-text-grey'>No daily timestamp data available.</p>");
+    }
+  }
+
+  function renderAdminDashboardStats(data) {
+    const dailyProgress = data.daily_progress || [];
+    dashboardStatsContainer.innerHTML = `
+      <h2 class="title is-5">Summary</h2>
+      <p class="mb-3"><strong>Data Source:</strong> ${data.data_source || ""}</p>
+      <div class="columns is-multiline">
+        <div class="column is-3"><div class="box has-text-centered"><p class="heading">Registered Annotators</p><p class="title is-4">${data.totals.registered_annotators}</p></div></div>
+        <div class="column is-3"><div class="box has-text-centered"><p class="heading">Active Annotators</p><p class="title is-4">${data.totals.active_annotators}</p></div></div>
+        <div class="column is-3"><div class="box has-text-centered"><p class="heading">Total Annotations</p><p class="title is-4">${data.totals.total_annotations}</p></div></div>
+        <div class="column is-3"><div class="box has-text-centered"><p class="heading">States Covered</p><p class="title is-4">${data.totals.states_covered}</p></div></div>
+      </div>
+      <div class="card mt-4">
+        <div class="card-content">
+          <h2 class="title is-5">Progress Visualizations</h2>
+          <div class="columns is-variable is-5 is-multiline">
+            <div class="column is-4"><p class="has-text-weight-semibold mb-2">Total Annotations by State</p><div style="max-width: 420px;"><canvas id="stateAnnotationsChart" height="220"></canvas></div></div>
+            <div class="column is-4"><p class="has-text-weight-semibold mb-2">Total Validated Annotations by State</p><div style="max-width: 420px;"><canvas id="reviewedStateAnnotationsChart" height="220"></canvas></div></div>
+            <div class="column is-4"><p class="has-text-weight-semibold mb-2">Approved Annotations by State</p><div style="max-width: 420px;"><canvas id="approvedStateAnnotationsChart" height="220"></canvas></div></div>
+          </div>
+          <hr>
+          <div>
+            <p class="has-text-weight-semibold mb-2">Daily Annotations Progress</p>
+            <div class="daily-progress-shell">
+              <div class="daily-progress-summary">
+                <div class="daily-progress-chip">Tracked Days: ${dailyProgress.length}</div>
+                <div class="daily-progress-chip">Latest Daily Count: ${dailyProgress.length ? dailyProgress[dailyProgress.length - 1].count : 0}</div>
+                <div class="daily-progress-chip">Cumulative Total: ${dailyProgress.length ? dailyProgress[dailyProgress.length - 1].cumulative : 0}</div>
+              </div>
+              <canvas id="dailyProgressChart" height="120"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    destroyAdminDashboardCharts();
+
+    const stateLabels = (data.state_stats || []).map((row) => row.state);
+    const stateCounts = (data.state_stats || []).map((row) => row.annotation_count);
+    const reviewedStateLabels = (data.reviewed_state_stats || []).map((row) => row.state);
+    const reviewedStateCounts = (data.reviewed_state_stats || []).map((row) => row.annotation_count);
+    const approvedStateLabels = (data.approved_state_stats || []).map((row) => row.state);
+    const approvedStateCounts = (data.approved_state_stats || []).map((row) => row.annotation_count);
+    const allChartStates = Array.from(new Set(
+      [...stateLabels, ...reviewedStateLabels, ...approvedStateLabels]
+    )).sort((a, b) => a.localeCompare(b));
+    const stateColorMap = Object.fromEntries(
+      allChartStates.map((state, index) => [state, statePalette[index % statePalette.length]])
+    );
+
+    buildPieChart("stateAnnotationsChart", stateLabels, stateCounts, "No annotation data yet.", stateColorMap);
+    buildPieChart("reviewedStateAnnotationsChart", reviewedStateLabels, reviewedStateCounts, "No reviewed annotations yet.", stateColorMap);
+    buildPieChart("approvedStateAnnotationsChart", approvedStateLabels, approvedStateCounts, "No approved annotations yet.", stateColorMap);
+    buildDailyProgressChart(dailyProgress);
+  }
+
+  function renderIaaReviewStats(data) {
+    const stateGroups = data.state_groups || [];
+    if (!iaaReviewStatsContainer) return;
+
+    if (!stateGroups.length) {
+      iaaReviewStatsContainer.innerHTML = "<p class='has-text-grey mb-0'>No completed inter-annotator reviews found yet.</p>";
+      return;
+    }
+
+    iaaReviewStatsContainer.innerHTML = `
+      <div class="iaa-review-stats-shell">
+        ${stateGroups.map((group) => `
+          <div class="iaa-review-state-card">
+            <h3 class="iaa-review-state-title">${group.state}</h3>
+            <table class="table is-fullwidth is-hoverable is-zebra-neutral mb-0">
+              <thead>
+                <tr>
+                  <th>Annotator Name</th>
+                  <th width="24%">Reviews Completed</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${group.reviewers.map((reviewer) => `
+                  <tr>
+                    <td>${reviewer.reviewer_name}</td>
+                    <td><span class="has-text-weight-semibold">${reviewer.completed_review_count}</span></td>
+                  </tr>
+                `).join("")}
+              </tbody>
+            </table>
+          </div>
+        `).join("")}
+      </div>
+    `;
+  }
+
+  async function loadAdminDashboardStats() {
+    const targetUrl = loadDashboardStatsBtn?.dataset.url;
+    if (!targetUrl || !dashboardStatsContainer) return;
+    loadDashboardStatsBtn.disabled = true;
+    loadDashboardStatsBtn.classList.add("is-loading");
+    dashboardStatsContainer.innerHTML = "<p class='has-text-grey'>Loading dashboard stats…</p>";
+    try {
+      const response = await fetch(targetUrl, { headers: { "X-Requested-With": "XMLHttpRequest" } });
+      if (!response.ok) {
+        throw new Error(`Request failed with status ${response.status}`);
+      }
+      const data = await response.json();
+      renderAdminDashboardStats(data);
+      loadDashboardStatsBtn.textContent = "Reload Dashboard Stats";
+    } catch (error) {
+      dashboardStatsContainer.innerHTML = `<div class="notification is-warning is-light mb-0">Could not load dashboard stats: ${error.message}</div>`;
+    } finally {
+      loadDashboardStatsBtn.disabled = false;
+      loadDashboardStatsBtn.classList.remove("is-loading");
+    }
+  }
+
+  async function loadAdminIaaReviewStats() {
+    const targetUrl = loadIaaReviewStatsBtn?.dataset.url;
+    if (!targetUrl || !iaaReviewStatsContainer) return;
+    loadIaaReviewStatsBtn.disabled = true;
+    loadIaaReviewStatsBtn.classList.add("is-loading");
+    iaaReviewStatsContainer.innerHTML = "<p class='has-text-grey'>Loading inter-annotator review stats…</p>";
+    try {
+      const response = await fetch(targetUrl, { headers: { "X-Requested-With": "XMLHttpRequest" } });
+      if (!response.ok) {
+        throw new Error(`Request failed with status ${response.status}`);
+      }
+      const data = await response.json();
+      renderIaaReviewStats(data);
+      loadIaaReviewStatsBtn.textContent = "Reload Inter-Annotator Review Stats";
+    } catch (error) {
+      iaaReviewStatsContainer.innerHTML = `<div class="notification is-warning is-light mb-0">Could not load inter-annotator review stats: ${error.message}</div>`;
+    } finally {
+      loadIaaReviewStatsBtn.disabled = false;
+      loadIaaReviewStatsBtn.classList.remove("is-loading");
+    }
+  }
+
+  if (loadDashboardStatsBtn) {
+    loadDashboardStatsBtn.addEventListener("click", loadAdminDashboardStats);
+  }
+
+  if (loadIaaReviewStatsBtn) {
+    loadIaaReviewStatsBtn.addEventListener("click", loadAdminIaaReviewStats);
+  }
+</script>
+{% endblock %}

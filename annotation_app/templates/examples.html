@@ -1,0 +1,178 @@
+{% extends "layout/base.html" %}
+
+{% block title %}Examples{% endblock %}
+
+{% block content %}
+
+<section class="section pt-1">
+  <div class="container">
+
+    <div class="card mb-5">
+      <div class="card-content">
+        <h1 class="title">Examples</h1>
+        <p class="subtitle mb-0">
+          Reference examples from completed annotations.
+        </p>
+      </div>
+    </div>
+
+    {% if error %}
+      <div class="notification is-danger is-light mb-5">{{ error }}</div>
+    {% endif %}
+
+    {% if not samples %}
+      <div class="card">
+        <div class="card-content">
+          <p>No sample examples available yet.</p>
+        </div>
+      </div>
+    {% else %}
+
+      <div class="card mb-5">
+        <div class="card-content">
+          <div class="field">
+            <label class="label">Choose an example</label>
+            <div class="control select is-fullwidth">
+              <select id="example-select" onchange="showSample(this.value)">
+                {% for s in samples %}
+                  <option value="{{ loop.index0 }}">{{ s.label }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {% for s in samples %}
+      <div class="sample-panel" id="sample-{{ loop.index0 }}" {% if not loop.first %}style="display:none;"{% endif %}>
+
+        <div class="card mb-5">
+          <div class="card-content">
+            <h2 class="title is-5 mb-2">{{ s.label }}</h2>
+            <p><strong>Region:</strong> {{ s.region }} | <strong>State:</strong> {{ s.state }}</p>
+          </div>
+        </div>
+
+        <div class="card mb-5">
+          <div class="card-content">
+            <h3 class="title is-6">Prompts</h3>
+            <table class="table is-bordered is-fullwidth is-small">
+              <tr>
+                <th width="20%">Base Prompt</th>
+                <td><pre class="wrapped-pre">{{ s.prompts.base }}</pre></td>
+              </tr>
+              <tr>
+                <th>Identity-Primed Prompt</th>
+                <td><pre class="wrapped-pre">{{ s.prompts.identity }}</pre></td>
+              </tr>
+            </table>
+          </div>
+        </div>
+
+        {% for model_key, model_data in s.outputs.items() %}
+        {% set idx = loop.index %}
+        <div class="card mb-5">
+          <div class="card-content">
+            <h3 class="title is-6">Model {{ idx }} Outputs</h3>
+
+            <table class="table is-bordered is-fullwidth is-small">
+              <thead>
+                <tr>
+                  <th width="15%"></th>
+                  <th>Base Output</th>
+                  <th>Identity-Primed Output</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <th>Text</th>
+                  <td><div class="markdown-output is-compact" data-markdown-static>{{- model_data.base.text -}}</div></td>
+                  <td><div class="markdown-output is-compact" data-markdown-static>{{- model_data.identity.text -}}</div></td>
+                </tr>
+                <tr>
+                  <th>Contains Hallucination</th>
+                  <td>{{ model_data.base.hallucination }}</td>
+                  <td>{{ model_data.identity.hallucination }}</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <h4 class="title is-7 mt-4">Annotated Hegemony Axes</h4>
+            <table class="table is-bordered is-fullwidth is-small">
+              <thead>
+                <tr>
+                  <th>Axis</th>
+                  <th>Base</th>
+                  <th>Identity</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for axis in ["social","economic","religious","gender","linguistic","colorism"] %}
+                <tr>
+                  <th>{{ axis|capitalize }}</th>
+                  <td>
+                    {{ model_data.base.hegemony[axis].present }}
+                    {% if model_data.base.hegemony[axis].impact %}
+                      — {{ model_data.base.hegemony[axis].impact }}
+                    {% endif %}
+                  </td>
+                  <td>
+                    {{ model_data.identity.hegemony[axis].present }}
+                    {% if model_data.identity.hegemony[axis].impact %}
+                      — {{ model_data.identity.hegemony[axis].impact }}
+                    {% endif %}
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        {% endfor %}
+
+        <div class="card mb-5">
+          <div class="card-content">
+            <h3 class="title is-6">Ground Truth</h3>
+            <pre class="wrapped-pre">{{ s.ground_truth }}</pre>
+          </div>
+        </div>
+
+        <div class="card mb-6">
+          <div class="card-content">
+            <h3 class="title is-6">References</h3>
+            <pre class="wrapped-pre">{{ s.references }}</pre>
+          </div>
+        </div>
+
+      </div>
+      {% endfor %}
+
+    {% endif %}
+
+  </div>
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  function showSample(index) {
+    const panels = document.querySelectorAll('.sample-panel');
+    panels.forEach((panel) => {
+      panel.style.display = 'none';
+    });
+
+    const active = document.getElementById(`sample-${index}`);
+    if (active) {
+      active.style.display = 'block';
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    const select = document.getElementById('example-select');
+    if (select) {
+      showSample(select.value || '0');
+    }
+  });
+</script>
+{% endblock %}

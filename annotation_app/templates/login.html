@@ -1,0 +1,66 @@
+{% extends "layout/base.html" %}
+
+{% block content %}
+
+<section class="section is-flex is-align-items-center is-justify-content-center">
+
+  <div class="box" style="width: 500px;">
+
+    <h1 class="has-text-dark is-size-3">Login</h1>
+
+    {% if error %}
+      <div class="notification is-danger is-light">
+        {{ error }}
+      </div>
+    {% endif %}
+
+    <form method="POST">
+
+      <div class="field">
+        <label class="label">Username</label>
+        <div class="control">
+          <input class="input" type="text" name="username" required autofocus>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="label">Password</label>
+        <div class="control">
+          <input class="input" id="login_password" type="password" name="password" required>
+        </div>
+        <label class="checkbox mt-2 is-size-7 has-text-grey">
+          <input type="checkbox" id="toggle_login_password">
+          Show password
+        </label>
+      </div>
+
+      <div class="field mt-4">
+        <button class="button is-dark is-fullwidth" type="submit">
+          Login
+        </button>
+        <p class="has-text-centered mt-4">
+          New annotator?
+          <a href="{{ url_for('auth.access_code') }}">Create account</a>
+        </p>
+      </div>
+
+    </form>
+
+  </div>
+
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const loginPasswordInput = document.getElementById("login_password");
+  const toggleLoginPassword = document.getElementById("toggle_login_password");
+
+  if (loginPasswordInput && toggleLoginPassword) {
+    toggleLoginPassword.addEventListener("change", () => {
+      loginPasswordInput.type = toggleLoginPassword.checked ? "text" : "password";
+    });
+  }
+</script>
+{% endblock %}

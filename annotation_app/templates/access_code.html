@@ -1,0 +1,38 @@
+{% extends "layout/base.html" %}
+
+{% block content %}
+
+<section class="section is-flex is-align-items-center is-justify-content-center">
+
+  <div class="box" style="width: 500px;">
+
+    <h1 class="has-text-dark is-size-3">Enter Access Code</h1>
+
+    {% if error %}
+      <div class="notification is-danger is-light">
+        {{ error }}
+      </div>
+    {% endif %}
+
+    <form method="POST">
+
+      <div class="field">
+        <label class="label">Secret Access Code (Old Password which was provided)</label>
+        <div class="control">
+          <input class="input" type="password" name="secret_code" required autofocus>
+        </div>
+      </div>
+
+      <div class="field mt-4">
+        <button class="button is-dark is-fullwidth" type="submit">
+          Continue →
+        </button>
+      </div>
+
+    </form>
+
+  </div>
+
+</section>
+
+{% endblock %}

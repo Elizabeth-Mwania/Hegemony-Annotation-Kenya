@@ -1,0 +1,55 @@
+<div class="columns">
+
+  <!-- NAME -->
+  <div class="column">
+    <label class="label">Name</label>
+    <div class="control">
+      <input class="input"
+            type="text"
+            name="annotator_name"
+            required
+            value="{% if draft %}{{ draft.annotator_name }}{% else %}{{ user.username }}{% endif %}"
+            readonly>
+    </div>
+  </div>
+
+  <!-- REGION -->
+  <div class="column">
+    <label class="label">Region</label>
+    <input type="hidden"
+           name="region"
+           value="{% if draft %}{{ draft.region }}{% else %}{{ user.region }}{% endif %}">
+    <div class="control select is-fullwidth">
+      <select id="region"
+          required
+          onchange="updateState()"
+          disabled>
+
+        {% for region in region_state_map.keys() %}
+          <option value="{{ region }}"
+            {% if draft and draft.region == region %}
+              selected
+            {% elif not draft and user.region == region %}
+              selected
+            {% endif %}>
+            {{ region }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+  </div>
+
+  <!-- STATE -->
+  <div class="column">
+    <label class="label">State</label>
+    <input type="hidden"
+           name="state"
+           value="{% if draft %}{{ draft.state }}{% else %}{{ user.state }}{% endif %}">
+    <div class="control select is-fullwidth">
+      <select id="state" required disabled>
+        <option value="">Select state</option>
+      </select>
+    </div>
+  </div>
+
+</div>

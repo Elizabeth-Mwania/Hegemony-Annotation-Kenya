@@ -1,0 +1,381 @@
+<script>
+  const regionStateMap = {{ region_state_map | tojson }};
+
+  // Determine defaults:
+  const defaultRegion = "{% if draft %}{{ draft.region }}{% else %}{{ user.region if user }}{% endif %}";
+  const defaultState  = "{% if draft %}{{ draft.state }}{% else %}{{ user.state if user }}{% endif %}";
+
+  function updateState() {
+    const regionSelect = document.getElementById("region");
+    const stateSelect = document.getElementById("state");
+
+    const region = regionSelect.value;
+
+    // Reset dropdown
+    stateSelect.innerHTML = "<option value=''>Select state</option>";
+
+    if (!region || !regionStateMap[region]) return;
+
+    const states = regionStateMap[region];
+
+    states.forEach(function(state) {
+      const option = document.createElement("option");
+      option.value = state;
+      option.text = state;
+
+      // Auto-select correct state
+      if (state === defaultState) {
+        option.selected = true;
+      }
+
+      stateSelect.appendChild(option);
+    });
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+
+    const regionSelect = document.getElementById("region");
+
+    if (defaultRegion) {
+      regionSelect.value = defaultRegion;
+    }
+
+    updateState();
+    renderAllOutputPreviews();
+  });
+</script>
+
+
+<script>
+async function generateOutput(model, kind) {
+
+  // 1. Read the correct prompt
+  const prompt =
+    kind === "base"
+      ? document.querySelector("textarea[name='base_prompt']").value
+      : document.querySelector("textarea[name='identity_primed_prompt']").value;
+
+  if (!prompt.trim()) {
+    alert("Prompt is empty");
+    return;
+  }
+
+  // 2. Target the correct output textarea
+  // IDs:
+  // gemini_llm_output_base
+  // gemini_llm_output_identity
+  // chatgpt_llm_output_base
+  // chatgpt_llm_output_identity
+  const btn = document.getElementById(`${model}_${kind}_generate_btn`);
+  const outputBox = document.getElementById(
+    `${model}_llm_output_${kind}`
+  );
+  const previewBox = document.getElementById(
+    `${model}_llm_output_${kind}_preview`
+  );
+
+  if (!outputBox) {
+    alert("Output box not found in DOM.");
+    return;
+  }
+
+  outputBox.value = "Generating…";
+  if (previewBox) {
+    previewBox.classList.add("is-loading");
+    previewBox.textContent = "Generating...";
+  }
+
+  // 3. Call backend
+  try {
+    const response = await fetch(`/generate/${model}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ prompt })
+    });
+
+    const data = await response.json();
+
+    if (data.error) {
+      outputBox.value = "Error: " + data.error;
+    } else {
+      outputBox.value = data.text;
+    }
+
+    renderOutputPreview(outputBox.id);
+
+  } catch (err) {
+    console.error(err);
+    outputBox.value = "Request failed.";
+    renderOutputPreview(outputBox.id);
+  }
+}
+
+function renderOutputPreview(textareaId) {
+  const source = document.getElementById(textareaId);
+  const preview = document.querySelector(`[data-output-preview-for="${textareaId}"]`);
+  if (!source || !preview) return;
+
+  preview.classList.toggle("is-loading", source.value.trim() === "Generating…");
+  if (window.renderMarkdownElement) {
+    window.renderMarkdownElement(preview, source.value);
+  } else {
+    preview.textContent = source.value;
+  }
+}
+
+function renderAllOutputPreviews() {
+  document.querySelectorAll("[data-output-preview-for]").forEach((preview) => {
+    const textareaId = preview.getAttribute("data-output-preview-for");
+    if (textareaId) {
+      renderOutputPreview(textareaId);
+    }
+  });
+}
+
+function autofillIdentityPrompt() {
+  const basePromptBox = document.getElementById("base_prompt_input");
+  const identityPromptBox = document.getElementById("identity_prompt_input");
+
+  const basePrompt = basePromptBox ? basePromptBox.value.trim() : "";
+  if (!basePrompt) {
+    alert("Please enter Base Prompt first.");
+    return;
+  }
+  if (!identityPromptBox) {
+    alert("Identity prompt field not found.");
+    return;
+  }
+
+  identityPromptBox.value = `As <place relevant identity here>, ${basePrompt}`;
+}
+</script>
+
+
+<script>
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function toggleStickyPrompts() {
+  toggleCollapsiblePanel("sticky_prompt_body", "sticky_prompt_toggle_icon");
+}
+
+function syncHegemonyReasonWithRadio(textarea) {
+  if (!textarea) return;
+
+  const reasonText = textarea.value.trim();
+  if (!reasonText) return;
+
+  const radioGroupName = textarea.name.replace(/_impact$/, "_hegemony");
+  const yesRadio = document.querySelector(
+    `input[type="radio"][name="${radioGroupName}"][value="yes"]`
+  );
+
+  if (yesRadio) {
+    yesRadio.checked = true;
+  }
+}
+
+function attachHegemonyReasonAutoYes() {
+  document
+    .querySelectorAll("textarea[data-hegemony-impact-input='true']")
+    .forEach((textarea) => {
+      textarea.addEventListener("input", () => {
+        syncHegemonyReasonWithRadio(textarea);
+      });
+
+      textarea.addEventListener("change", () => {
+        syncHegemonyReasonWithRadio(textarea);
+      });
+    });
+}
+
+function toggleStickyReview() {
+  const body = document.getElementById("sticky_review_body");
+  const icon = document.getElementById("sticky_review_toggle_icon");
+  const toggleBtn = icon ? icon.closest("button") : null;
+  if (!body || !icon) return;
+
+  const isCollapsed = body.dataset.collapsed === "true";
+
+  if (!body.classList.contains("review-collapse-body")) {
+    body.classList.add("review-collapse-body");
+  }
+
+  if (isCollapsed) {
+    body.hidden = false;
+    body.classList.remove("is-collapsed");
+    body.style.height = "0px";
+    body.offsetHeight;
+    body.style.height = `${body.scrollHeight}px`;
+  } else {
+    body.style.height = `${body.scrollHeight}px`;
+    body.offsetHeight;
+    body.classList.add("is-collapsed");
+    body.style.height = "0px";
+  }
+
+  body.dataset.collapsed = String(!isCollapsed);
+  icon.textContent = isCollapsed ? "▾" : "▴";
+  if (toggleBtn) {
+    toggleBtn.setAttribute("aria-expanded", String(isCollapsed));
+  }
+}
+
+async function checkPromptSimilarity() {
+  const promptBox = document.getElementById("base_prompt_input");
+  const stateHidden = document.querySelector("input[name='state']");
+  const currentAnnotationInput = document.getElementById("current_annotation_id");
+  const btn = document.getElementById("check_similarity_btn");
+  const resultBox = document.getElementById("similarity_results");
+
+  const prompt = promptBox ? promptBox.value.trim() : "";
+  const state = stateHidden ? stateHidden.value.trim() : "";
+  const currentAnnotationId = currentAnnotationInput ? currentAnnotationInput.value.trim() : "";
+
+  if (!prompt) {
+    alert("Base prompt is empty.");
+    return;
+  }
+
+  resultBox.classList.remove("is-hidden", "is-danger", "is-warning", "is-success", "is-info");
+  resultBox.classList.add("is-light");
+  resultBox.innerHTML = "Checking similarity...";
+
+  btn.disabled = true;
+  const originalBtnText = btn.textContent;
+  btn.textContent = "Checking...";
+
+  try {
+    const response = await fetch("/check-prompt-similarity", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        prompt,
+        state,
+        current_annotation_id: currentAnnotationId
+      })
+    });
+
+    const payload = await response.json();
+    if (!response.ok) {
+      throw new Error(payload.error || "Similarity check failed.");
+    }
+
+    if (!payload.matches || payload.matches.length === 0) {
+      resultBox.classList.add("is-success");
+      resultBox.innerHTML = `<strong>${escapeHtml(payload.message || "No similar prompts above threshold. Please go ahead with your annotation.")}</strong>`;
+      return;
+    }
+
+    resultBox.classList.add("is-warning");
+
+    const lines = payload.matches.map((match) => {
+      const rawScore = Number(match.similarity);
+      const percent = Number.isFinite(rawScore) ? Math.round(rawScore * 100) : 0;
+      return `<li><strong>${percent}% match</strong>: ${escapeHtml(match.prompt)}</li>`;
+    }).join("");
+
+    resultBox.innerHTML = `
+      <p><strong>Similar prompts found. Another annotator from the same state has used a similar prompt. Please manually ensure that your prompt is different.</strong></p>
+      <ul>${lines}</ul>
+    `;
+  } catch (err) {
+    console.error(err);
+    resultBox.classList.add("is-danger");
+    resultBox.innerHTML = `Error: ${escapeHtml(err.message || "Similarity check failed.")}`;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = originalBtnText;
+  }
+}
+
+let saveStatusTimer = null;
+
+function showSaveStatus(message, isError = false) {
+  const badge = document.getElementById("save_status_badge");
+  if (!badge) return;
+
+  badge.classList.remove("is-hidden", "is-error");
+  if (isError) {
+    badge.classList.add("is-error");
+  }
+  badge.textContent = message;
+
+  if (saveStatusTimer) {
+    clearTimeout(saveStatusTimer);
+  }
+  saveStatusTimer = setTimeout(() => {
+    badge.classList.add("is-hidden");
+  }, 2800);
+}
+
+async function saveAnnotationDraft() {
+  const form = document.getElementById("annotation_form");
+  const btn = document.getElementById("floating_save_btn");
+  const currentAnnotationInput = document.getElementById("current_annotation_id");
+  if (!form || !btn) return;
+
+  const formData = new FormData(form);
+  const originalBtnText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = "Saving...";
+
+  try {
+    const response = await fetch("/save-annotation-draft", {
+      method: "POST",
+      body: formData
+    });
+    const payload = await response.json();
+    if (!response.ok || !payload.ok) {
+      throw new Error(payload.error || "Could not save annotation.");
+    }
+    if (currentAnnotationInput && payload.annotation_id) {
+      currentAnnotationInput.value = payload.annotation_id;
+    }
+    showSaveStatus("Annotation saved");
+  } catch (err) {
+    console.error(err);
+    showSaveStatus(err.message || "Save failed", true);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = originalBtnText;
+  }
+}
+</script>
+
+
+<script>
+let currentStep = 1;
+
+function showStep(step) {
+  document.querySelectorAll(".step").forEach(div => {
+    div.classList.add("is-hidden");
+  });
+
+  const el = document.getElementById(`step-${step}`);
+  if (el) {
+    el.classList.remove("is-hidden");
+    currentStep = step;
+  }
+}
+
+function nextStep() {
+  showStep(currentStep + 1);
+}
+
+function prevStep() {
+  showStep(currentStep - 1);
+}
+
+// Optional: start at step 1 explicitly
+document.addEventListener("DOMContentLoaded", () => {
+  attachHegemonyReasonAutoYes();
+  showStep(1);
+});
+</script>
